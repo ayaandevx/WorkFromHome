@@ -1,0 +1,20 @@
+{
+  "name": "workfrom-blog-studio",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "sanity dev",
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "dependencies": {
+    "@sanity/cli": "^3",
+    "@sanity/icons": "^3",
+    "@sanity/ui": "^3",
+    "@sanity/vision": "^3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sanity": "^3",
+    "styled-components": "^6.5.1"
+  }
+}
