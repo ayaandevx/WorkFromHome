@@ -1,6 +1,7 @@
 import type { JobProvider, NormalizedJob, ExperienceLevel } from "../types";
 import { bucketRegion, makeJobId, makeJobSlug, normalizeEmploymentType, parseSalary, stripHtml } from "../normalize";
 import { cleanText, sanitizeDescriptionHtml, isPublishableJob } from "../clean";
+import { fetchJson } from "../fetch-utils";
 
 /**
  * Remotive Public API — https://remotive.com/api/remote-jobs
@@ -47,17 +48,7 @@ export const remotiveProvider: JobProvider = {
   displayName: "Remotive",
 
   async fetchJobs(): Promise<NormalizedJob[]> {
-    const res = await fetch(REMOTIVE_ENDPOINT, {
-      // ISR-friendly: revalidate the upstream job feed every 30 minutes.
-      next: { revalidate: 1800 },
-      headers: { Accept: "application/json" },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Remotive API error: ${res.status} ${res.statusText}`);
-    }
-
-    const data: RemotiveResponse = await res.json();
+    const data = await fetchJson<RemotiveResponse>(REMOTIVE_ENDPOINT, { revalidateSeconds: 1800, retries: 1 });
     const fetchedAt = new Date().toISOString();
 
     const jobs = data.jobs.map((job): NormalizedJob => {

@@ -1,6 +1,7 @@
 import type { JobProvider, NormalizedJob } from "../types";
 import { bucketRegion, makeJobId, makeJobSlug, normalizeEmploymentType, stripHtml } from "../normalize";
 import { cleanText, sanitizeDescriptionHtml, isPublishableJob } from "../clean";
+import { fetchJson } from "../fetch-utils";
 
 /**
  * Arbeitnow Job Board API — https://www.arbeitnow.com/api/job-board-api
@@ -34,16 +35,7 @@ export const arbeitnowProvider: JobProvider = {
   displayName: "Arbeitnow",
 
   async fetchJobs(): Promise<NormalizedJob[]> {
-    const res = await fetch(ARBEITNOW_ENDPOINT, {
-      next: { revalidate: 1800 },
-      headers: { Accept: "application/json" },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Arbeitnow API error: ${res.status} ${res.statusText}`);
-    }
-
-    const data: ArbeitnowResponse = await res.json();
+    const data = await fetchJson<ArbeitnowResponse>(ARBEITNOW_ENDPOINT, { revalidateSeconds: 1800, retries: 1 });
     const fetchedAt = new Date().toISOString();
 
     const jobs = data.data

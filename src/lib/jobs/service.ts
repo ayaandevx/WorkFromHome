@@ -21,6 +21,7 @@ function dedupeKey(job: NormalizedJob): string {
   return `${job.title.trim().toLowerCase()}::${job.companyName.trim().toLowerCase()}`;
 }
 
+
 function dedupe(jobs: NormalizedJob[]): NormalizedJob[] {
   const seen = new Map<string, NormalizedJob>();
   for (const job of jobs) {
@@ -99,7 +100,13 @@ export async function resolveJobSlug(slug: string | undefined): Promise<JobLooku
   // provider tweaked the title). Match by suffix rather than splitting on
   // "-", since provider ids can themselves contain hyphens.
 
-  const byId = jobs.find((j) => slug?.endsWith(`-${j.providerJobId}`));
+  // const byId = jobs.find((j) => slug.endsWith(`-${j.providerJobId}`));
+  const byId = jobs.find(
+  (j) =>
+    typeof j.providerJobId === "string" &&
+    j.providerJobId.length > 0 &&
+    slug.endsWith(`-${j.providerJobId}`)
+);
   if (byId) return { status: "redirect", to: `/jobs/${byId.slug}` };
 
   return { status: "gone" };

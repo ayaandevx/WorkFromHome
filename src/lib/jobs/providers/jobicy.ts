@@ -1,6 +1,7 @@
 import type { JobProvider, NormalizedJob } from "../types";
 import { bucketRegion, makeJobId, makeJobSlug, normalizeEmploymentType, stripHtml } from "../normalize";
 import { cleanText, sanitizeDescriptionHtml, isPublishableJob } from "../clean";
+import { fetchJson } from "../fetch-utils";
 
 /**
  * Jobicy Remote Jobs API — https://jobicy.com/api/v2/remote-jobs
@@ -41,16 +42,7 @@ export const jobicyProvider: JobProvider = {
   displayName: "Jobicy",
 
   async fetchJobs(): Promise<NormalizedJob[]> {
-    const res = await fetch(JOBICY_ENDPOINT, {
-      next: { revalidate: 1800 },
-      headers: { Accept: "application/json" },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Jobicy API error: ${res.status} ${res.statusText}`);
-    }
-
-    const data: JobicyResponse = await res.json();
+    const data = await fetchJson<JobicyResponse>(JOBICY_ENDPOINT, { revalidateSeconds: 1800, retries: 1 });
     const fetchedAt = new Date().toISOString();
 
     const jobs = data.jobs.map((job): NormalizedJob => {
