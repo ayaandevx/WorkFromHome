@@ -32,7 +32,7 @@ export default async function HomePage() {
         color: "var(--color-border, #000)",
       }}
     />
-    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber/20 blur-3xl sm:h-96 sm:w-96 sm:-right-32 sm:-top-32 xl:h-[32rem] xl:w-[32rem]" />
+    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber/20 blur-3xl sm:h-96 sm:w-96 sm:-right-32 sm:-top-32 xl:h-128 xl:w-lg" />
     <div className="absolute -bottom-14 -left-14 h-40 w-40 rounded-full bg-ink/5 blur-3xl sm:h-72 sm:w-72 sm:-bottom-24 sm:-left-24 xl:h-96 xl:w-96" />
   </div>
 

@@ -33,7 +33,7 @@ export function JobCard({ job }: { job: NormalizedJob }) {
     <article className="group relative rounded-lg border border-border bg-paper-raised p-4 transition-shadow hover:shadow-md sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <Link href={`/jobs/${job.slug}`} className="min-w-0 flex-1">
-          <h3 className="truncate font-display text-lg font-semibold text-ink group-hover:text-amber">
+          <h3 className="wrap-break-word font-display text-lg font-semibold text-ink group-hover:text-amber">
             {job.title}
           </h3>
           <p className="mt-0.5 text-sm text-text-muted">{job.companyName}</p>
