@@ -57,6 +57,22 @@ export interface NormalizedJob {
 
   publishedAt: string; // ISO date
   fetchedAt: string; // ISO date — when we last confirmed this listing from the source
+  /**
+   * Best-effort expiry for JobPosting structured data, since most source
+   * feeds don't give us a real one. Computed by the provider adapter,
+   * never fabricated as a specific claim beyond "assume gone after this".
+   */
+  validThrough: string;
+
+  /**
+   * Whether this listing may be surfaced via JobPosting JSON-LD (which
+   * powers Google's Job Search / "Jobs" rich results and third-party job
+   * aggregators that crawl schema.org data). Some providers' terms
+   * explicitly prohibit redistributing their listings into Google Jobs or
+   * similar aggregators — set this false for those providers so we only
+   * ever show a normal web page for them, never job-rich-result markup.
+   */
+  richResultsEligible: boolean;
 
   /**
    * Whether the source currently lists this job as active. We only ever set

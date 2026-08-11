@@ -68,10 +68,22 @@ export interface Article {
 }
 
 export type ToolKind =
-  | "resume-checklist"
+  | "resume-ats-checklist"
   | "readiness-checker"
   | "rate-calculator"
   | "timezone-calculator"
+  | "can-i-work-this-job-remotely-checker"
+  | "job-application-roi-calculator"
+  | "home-office-deduction-expense-organizer"
+  | "meeting-overload-calculator"
+  | "remote-job-salary-reality-calculator"
+  | "remote-job-scam-risk-checker"
+  | "remote-timezone-checker"
+  | "remote-work-readiness-score"
+  | "remote-work-take-home-pay-calculator"
+  | "wfh-electricity-cost-calculator"
+  | "wfh-internet-reliability-checker"
+  | "wfh-productivity-cost-calculator"
   | "other";
 
 export interface Tool {

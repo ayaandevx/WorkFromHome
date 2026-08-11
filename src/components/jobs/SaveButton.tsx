@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/firebase/AuthContext";
-import { saveItem, unsaveItem, listSavedItems, type SavedContentType } from "@/lib/firebase/saved";
+import { useSavedItems } from "@/lib/firebase/SavedItemsContext";
+import type { SavedContentType } from "@/lib/firebase/saved";
+import { track } from "@/lib/analytics";
 
 export function SaveButton({
   type,
@@ -17,15 +19,9 @@ export function SaveButton({
   href: string;
 }) {
   const { user, loading } = useAuth();
-  const [saved, setSaved] = useState(false);
+  const { isSaved, toggle } = useSavedItems();
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    listSavedItems(user.uid).then((items) => {
-      setSaved(items.some((i) => i.type === type && i.refId === refId));
-    });
-  }, [user, type, refId]);
+  const [error, setError] = useState<string | null>(null);
 
   if (loading) return null;
 
@@ -42,36 +38,44 @@ export function SaveButton({
     );
   }
 
-  async function toggle() {
-    if (!user) return;
+  const saved = isSaved(type, refId);
+
+  async function handleClick() {
     setBusy(true);
+    setError(null);
     try {
-      if (saved) {
-        await unsaveItem(user.uid, type, refId);
-        setSaved(false);
-      } else {
-        await saveItem(user.uid, { type, refId, title, href });
-        setSaved(true);
-      }
+      await toggle({ type, refId, title, href });
+      track({ name: "content_saved", contentType: type, refId });
+    } catch (err) {
+      // Previously this failure was swallowed entirely — the button looked
+      // broken with no indication anything went wrong. Now it's shown.
+      setError(err instanceof Error ? err.message : "Couldn't save that. Please try again.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      disabled={busy}
-      aria-pressed={saved}
-      aria-label={saved ? "Remove from saved" : "Save"}
-      title={saved ? "Remove from saved" : "Save"}
-      className={`shrink-0 rounded-md border p-1.5 transition-colors ${
-        saved ? "border-amber bg-amber/10 text-amber" : "border-border text-text-muted hover:text-amber"
-      }`}
-    >
-      <BookmarkIcon filled={saved} />
-    </button>
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={busy}
+        aria-pressed={saved}
+        aria-label={saved ? "Remove from saved" : "Save"}
+        title={saved ? "Remove from saved" : "Save"}
+        className={`rounded-md border p-1.5 transition-colors disabled:opacity-60 ${
+          saved ? "border-amber bg-amber/10 text-amber" : "border-border text-text-muted hover:text-amber"
+        }`}
+      >
+        <BookmarkIcon filled={saved} />
+      </button>
+      {error && (
+        <p role="alert" className="absolute right-0 top-full z-10 mt-1 w-56 rounded-md border border-danger/30 bg-paper-raised p-2 text-xs text-danger shadow-md">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

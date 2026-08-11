@@ -8,6 +8,21 @@ import { ResumeAtsChecklist } from "@/components/tools/ResumeAtsChecklist";
 import { ReadinessChecker } from "@/components/tools/ReadinessChecker";
 import { RateCalculator } from "@/components/tools/RateCalculator";
 import { TimezoneCalculator } from "@/components/tools/TimezoneCalculator";
+import { CanIWorkThisJobRemotelyChecker } from "@/components/tools/can-i-work-this-job-remotely-checker";
+import { HomeOfficeDeductionExpenseOrganizer } from "@/components/tools/home-office-deduction-expense-organizer";
+import { JobApplicationRoiCalculator } from "@/components/tools/job-application-roi-calculator";
+import { MeetingOverloadCalculator } from "@/components/tools/meeting-overload-calculator";
+import { RemoteJobSalaryRealityCalculator } from "@/components/tools/remote-job-salary-reality-calculator";
+import { RemoteJobScamRiskChecker } from "@/components/tools/remote-job-scam-risk-checker";
+import { RemoteTimezoneChecker } from "@/components/tools/remote-timezone-checker";
+import { RemoteWorkReadinessScore } from "@/components/tools/remote-work-readiness-score";
+import { RemoteWorkTakeHomePayCalculator } from "@/components/tools/remote-work-take-home-pay-calculator";
+import { WfhElectricityCostCalculator } from "@/components/tools/wfh-electricity-cost-calculator";
+import { WfhInternetReliabilityChecker } from "@/components/tools/wfh-internet-reliability-checker";
+import { WfhProductivityCostCalculator } from "@/components/tools/wfh-productivity-cost-calculator";
+
+
+
 
 export const revalidate = 3600;
 
@@ -41,6 +56,30 @@ function renderWidget(kind: string) {
       return <RateCalculator />;
     case "timezone-calculator":
       return <TimezoneCalculator />;
+    case "can-i-work-this-job-remotely-checker":
+      return <CanIWorkThisJobRemotelyChecker />;
+    case "job-application-roi-calculator":
+      return <JobApplicationRoiCalculator />;
+    case "home-office-deduction-expense-organizer":
+      return <HomeOfficeDeductionExpenseOrganizer />;
+    case "meeting-overload-calculator":
+      return <MeetingOverloadCalculator />;
+    case "remote-job-salary-reality-calculator":
+      return <RemoteJobSalaryRealityCalculator />;
+    case "remote-job-scam-risk-checker":
+      return <RemoteJobScamRiskChecker />;
+    case "remote-timezone-checker":
+      return <RemoteTimezoneChecker />;
+    case "remote-work-readiness-score":
+      return <RemoteWorkReadinessScore />;
+    case "remote-work-take-home-pay-calculator":
+      return <RemoteWorkTakeHomePayCalculator />;
+    case "wfh-electricity-cost-calculator":
+      return <WfhElectricityCostCalculator />;
+    case "wfh-internet-reliability-checker":
+      return <WfhInternetReliabilityChecker />;
+    case "wfh-productivity-cost-calculator":
+      return <WfhProductivityCostCalculator />;
     default:
       return null;
   }

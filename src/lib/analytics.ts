@@ -15,6 +15,7 @@ export type AnalyticsEvent =
   | { name: "article_view"; articleSlug: string; articleTitle: string }
   | { name: "newsletter_signup"; source: string }
   | { name: "account_created"; method: "email" | "google" }
+  | { name: "login"; method: string }
   | { name: "content_saved"; contentType: "job" | "article" | "tool" | "resource"; refId: string };
 
 declare global {

@@ -1,13 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  images: {
+   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io" },
       { protocol: "https", hostname: "remotive.com" },
       { protocol: "https", hostname: "**.remotive.com" },
       { protocol: "https", hostname: "arbeitnow.com" },
       { protocol: "https", hostname: "**.arbeitnow.com" },
+      { protocol: "https", hostname: "jobicy.com" },
+      { protocol: "https", hostname: "**.jobicy.com" },
     ],
   },
   async headers() {
@@ -22,5 +24,6 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
 
 export default nextConfig;

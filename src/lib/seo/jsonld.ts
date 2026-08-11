@@ -71,26 +71,69 @@ export function faqJsonLd(faqs: { question: string; answerPlain: string }[]) {
   };
 }
 
-/** Only rendered for jobs we can currently confirm as active from the source feed. */
+const GOOGLE_EMPLOYMENT_TYPE: Record<string, string> = {
+  full_time: "FULL_TIME",
+  part_time: "PART_TIME",
+  contract: "CONTRACTOR",
+  freelance: "CONTRACTOR",
+  internship: "INTERN",
+  unspecified: "OTHER",
+};
+
+/**
+ * Google's JobPosting schema requires applicantLocationRequirements to be an
+ * actual Country entity. Our source data gives freeform strings ("US Only",
+ * "EMEA", "UK/EU") that don't reliably map to one — emitting a guess would
+ * produce invalid structured data Search Console would flag. We only ever
+ * assert a country when we're confident, and omit the field otherwise
+ * (schema.org treats it as optional).
+ */
+const KNOWN_COUNTRY_LOCATIONS: Record<string, string[]> = {
+  "us only": ["US"],
+  usa: ["US"],
+  "united states": ["US"],
+  "us/canada": ["US", "CA"],
+  canada: ["CA"],
+  uk: ["GB"],
+  "united kingdom": ["GB"],
+  germany: ["DE"],
+  france: ["FR"],
+  spain: ["ES"],
+  australia: ["AU"],
+  india: ["IN"],
+};
+
+function resolveApplicantCountries(candidateRequiredLocation: string): string[] | undefined {
+  const key = candidateRequiredLocation.trim().toLowerCase();
+  return KNOWN_COUNTRY_LOCATIONS[key];
+}
+
+/** Only rendered for jobs whose source terms permit Google Jobs / third-party rich-result distribution. */
 export function jobPostingJsonLd(job: NormalizedJob) {
+  const countries = job.region === "worldwide" ? undefined : resolveApplicantCountries(job.candidateRequiredLocation);
+
   return {
     "@context": "https://schema.org",
     "@type": "JobPosting",
     title: job.title,
     description: job.descriptionHtml,
+    identifier: {
+      "@type": "PropertyValue",
+      name: job.provider,
+      value: job.providerJobId,
+    },
     datePosted: job.publishedAt,
-    validThrough: undefined,
-    employmentType: job.employmentType.toUpperCase(),
+    validThrough: job.validThrough,
+    employmentType: GOOGLE_EMPLOYMENT_TYPE[job.employmentType] || "OTHER",
     hiringOrganization: {
       "@type": "Organization",
       name: job.companyName,
       logo: job.companyLogo,
     },
     jobLocationType: "TELECOMMUTE",
-    applicantLocationRequirements:
-      job.region === "worldwide"
-        ? undefined
-        : { "@type": "Country", name: job.candidateRequiredLocation },
+    applicantLocationRequirements: countries
+      ? countries.map((code) => ({ "@type": "Country", name: code }))
+      : undefined,
     baseSalary: job.salary?.min
       ? {
           "@type": "MonetaryAmount",
@@ -98,7 +141,6 @@ export function jobPostingJsonLd(job: NormalizedJob) {
           value: { "@type": "QuantitativeValue", minValue: job.salary.min, maxValue: job.salary.max, unitText: "YEAR" },
         }
       : undefined,
-    directApply: false,
     url: absoluteUrl(`/jobs/${job.slug}`),
   };
 }

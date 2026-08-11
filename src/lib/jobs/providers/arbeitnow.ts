@@ -1,5 +1,6 @@
 import type { JobProvider, NormalizedJob } from "../types";
 import { bucketRegion, makeJobId, makeJobSlug, normalizeEmploymentType, stripHtml } from "../normalize";
+import { cleanText, sanitizeDescriptionHtml, isPublishableJob } from "../clean";
 
 /**
  * Arbeitnow Job Board API — https://www.arbeitnow.com/api/job-board-api
@@ -45,33 +46,49 @@ export const arbeitnowProvider: JobProvider = {
     const data: ArbeitnowResponse = await res.json();
     const fetchedAt = new Date().toISOString();
 
-    return data.data
+    const jobs = data.data
       .filter((job) => job.remote)
       .map((job): NormalizedJob => {
         const providerJobId = job.slug;
-        const location = job.location || "Worldwide";
+        const location = cleanText(job.location) || "Worldwide";
+        const title = cleanText(job.title);
+        const companyName = cleanText(job.company_name);
+        const descriptionHtml = sanitizeDescriptionHtml(job.description);
+        const publishedAt = new Date(job.created_at * 1000).toISOString();
+
         return {
           id: makeJobId("arbeitnow", providerJobId),
-          slug: makeJobSlug(job.title, job.company_name, providerJobId),
+          slug: makeJobSlug(title, companyName, providerJobId),
           provider: "arbeitnow",
           providerJobId,
           sourceUrl: job.url,
           applyUrl: job.url,
-          title: job.title,
-          companyName: job.company_name,
-          category: job.tags?.[0] || "General",
-          tags: job.tags || [],
+          title,
+          companyName,
+          category: cleanText(job.tags?.[0]) || "General",
+          tags: (job.tags || []).map((t) => cleanText(t).toLowerCase()).filter(Boolean),
           employmentType: normalizeEmploymentType(job.job_types?.[0]),
           experienceLevel: "unspecified",
           salary: undefined,
           candidateRequiredLocation: location,
           region: bucketRegion(location),
-          descriptionHtml: job.description,
-          descriptionText: stripHtml(job.description),
-          publishedAt: new Date(job.created_at * 1000).toISOString(),
+          descriptionHtml,
+          descriptionText: stripHtml(descriptionHtml),
+          publishedAt,
           fetchedAt,
+          validThrough: new Date(new Date(publishedAt).getTime() + 45 * 86400000).toISOString(),
+          richResultsEligible: true,
           isActive: true,
         };
       });
+
+    return jobs.filter((job) =>
+      isPublishableJob({
+        title: job.title,
+        companyName: job.companyName,
+        descriptionText: job.descriptionText,
+        applyUrl: job.applyUrl,
+      })
+    );
   },
 };

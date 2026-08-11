@@ -73,7 +73,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-paper/15 pt-6 text-xs text-paper/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} WorkFrom.blog. Job listings sourced with attribution from Remotive and Arbeitnow.</p>
+          <p>&copy; {new Date().getFullYear()} WorkFrom.blog. Job listings sourced with attribution from Remotive, Arbeitnow, and Jobicy.</p>
           <p>Built for people building remote careers.</p>
         </div>
       </div>

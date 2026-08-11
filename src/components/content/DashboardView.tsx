@@ -1,29 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { useAuth } from "@/lib/firebase/AuthContext";
 import { getFirebaseAuth } from "@/lib/firebase/client";
-import { listSavedItems, unsaveItem, type SavedItem } from "@/lib/firebase/saved";
+import { useSavedItems } from "@/lib/firebase/SavedItemsContext";
 
 export function DashboardView() {
   const { user, loading, isFirebaseConfigured } = useAuth();
+  const { items, ready, toggle } = useSavedItems();
   const router = useRouter();
-  const [saved, setSaved] = useState<SavedItem[]>([]);
-  const [loadingSaved, setLoadingSaved] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
-
-  useEffect(() => {
-    if (!user) return;
-    listSavedItems(user.uid)
-      .then(setSaved)
-      .finally(() => setLoadingSaved(false));
-  }, [user]);
 
   if (!isFirebaseConfigured) {
     return (
@@ -40,17 +32,11 @@ export function DashboardView() {
     return <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 text-text-muted">Loading…</div>;
   }
 
-  async function handleUnsave(item: SavedItem) {
-    if (!user) return;
-    await unsaveItem(user.uid, item.type, item.refId);
-    setSaved((prev) => prev.filter((s) => !(s.type === item.type && s.refId === item.refId)));
-  }
-
   const grouped = {
-    job: saved.filter((s) => s.type === "job"),
-    article: saved.filter((s) => s.type === "article"),
-    tool: saved.filter((s) => s.type === "tool"),
-    resource: saved.filter((s) => s.type === "resource"),
+    job: items.filter((s) => s.type === "job"),
+    article: items.filter((s) => s.type === "article"),
+    tool: items.filter((s) => s.type === "tool"),
+    resource: items.filter((s) => s.type === "resource"),
   };
 
   return (
@@ -75,27 +61,27 @@ export function DashboardView() {
 
       <div className="mt-8">
         <h2 className="font-display text-xl font-semibold text-ink">Saved</h2>
-        {loadingSaved ? (
+        {!ready ? (
           <p className="mt-3 text-sm text-text-muted">Loading saved items…</p>
-        ) : saved.length === 0 ? (
+        ) : items.length === 0 ? (
           <p className="mt-3 text-sm text-text-muted">
             Nothing saved yet. Use the bookmark icon on any job or article to save it here.
           </p>
         ) : (
           <div className="mt-4 space-y-6">
-            {Object.entries(grouped).map(([type, items]) =>
-              items.length > 0 ? (
+            {Object.entries(grouped).map(([type, groupItems]) =>
+              groupItems.length > 0 ? (
                 <div key={type}>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">{type}s</h3>
                   <ul className="mt-2 space-y-2">
-                    {items.map((item) => (
+                    {groupItems.map((item) => (
                       <li key={`${item.type}:${item.refId}`} className="flex items-center justify-between rounded-lg border border-border bg-paper-raised p-3">
                         <Link href={item.href} className="text-sm font-medium text-ink hover:text-amber">
                           {item.title}
                         </Link>
                         <button
                           type="button"
-                          onClick={() => handleUnsave(item)}
+                          onClick={() => toggle(item).catch((err) => console.error(err))}
                           className="text-xs text-text-muted hover:text-danger"
                         >
                           Remove

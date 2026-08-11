@@ -1,5 +1,6 @@
 import type { JobProvider, NormalizedJob, ExperienceLevel } from "../types";
 import { bucketRegion, makeJobId, makeJobSlug, normalizeEmploymentType, parseSalary, stripHtml } from "../normalize";
+import { cleanText, sanitizeDescriptionHtml, isPublishableJob } from "../clean";
 
 /**
  * Remotive Public API — https://remotive.com/api/remote-jobs
@@ -59,32 +60,50 @@ export const remotiveProvider: JobProvider = {
     const data: RemotiveResponse = await res.json();
     const fetchedAt = new Date().toISOString();
 
-    return data.jobs.map((job): NormalizedJob => {
+    const jobs = data.jobs.map((job): NormalizedJob => {
       const providerJobId = String(job.id);
-      const descriptionText = stripHtml(job.description);
+      const title = cleanText(job.title);
+      const companyName = cleanText(job.company_name);
+      const descriptionHtml = sanitizeDescriptionHtml(job.description);
+      const descriptionText = stripHtml(descriptionHtml);
+      const publishedAt = job.publication_date;
+
       return {
         id: makeJobId("remotive", providerJobId),
-        slug: makeJobSlug(job.title, job.company_name, providerJobId),
+        slug: makeJobSlug(title, companyName, providerJobId),
         provider: "remotive",
         providerJobId,
         sourceUrl: job.url,
         applyUrl: job.url,
-        title: job.title,
-        companyName: job.company_name,
+        title,
+        companyName,
         companyLogo: job.company_logo || undefined,
-        category: job.category,
-        tags: job.tags || [],
+        category: cleanText(job.category),
+        tags: (job.tags || []).map((t) => cleanText(t).toLowerCase()).filter(Boolean),
         employmentType: normalizeEmploymentType(job.job_type),
-        experienceLevel: guessExperienceLevel(job.title, job.tags || []),
+        experienceLevel: guessExperienceLevel(title, job.tags || []),
         salary: parseSalary(job.salary),
-        candidateRequiredLocation: job.candidate_required_location || "Worldwide",
+        candidateRequiredLocation: cleanText(job.candidate_required_location) || "Worldwide",
         region: bucketRegion(job.candidate_required_location || "Worldwide"),
-        descriptionHtml: job.description,
+        descriptionHtml,
         descriptionText,
-        publishedAt: job.publication_date,
+        publishedAt,
         fetchedAt,
+        // Remotive's own feed doesn't return an expiry; assume gone after 45
+        // days so JobPosting rich results self-expire instead of lingering.
+        validThrough: new Date(new Date(publishedAt).getTime() + 45 * 86400000).toISOString(),
+        richResultsEligible: true,
         isActive: true, // Remotive's feed only returns currently-listed jobs.
       };
     });
+
+    return jobs.filter((job) =>
+      isPublishableJob({
+        title: job.title,
+        companyName: job.companyName,
+        descriptionText: job.descriptionText,
+        applyUrl: job.applyUrl,
+      })
+    );
   },
 };

@@ -261,7 +261,7 @@ export const sampleTools: Tool[] = [
     title: "Resume & ATS Checklist",
     slug: "resume-ats-checklist",
     summary: "Check your resume against the formatting and content rules ATS software actually enforces.",
-    kind: "resume-checklist",
+    kind: "resume-ats-checklist",
     introHtml:
       "<p>Work through each item before you submit. Every rule here reflects a documented ATS parsing behavior, not a stylistic preference.</p>",
     relatedArticles: [{ title: "The Remote Resume: What Actually Gets Past ATS Filters", slug: "remote-resume-ats-filters" }],
