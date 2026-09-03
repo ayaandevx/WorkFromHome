@@ -12,7 +12,7 @@ import { schemaTypes } from "./schemas";
 export default defineConfig({
   name: "workfrom-blog",
   title: "WorkFrom.blog",
-  projectId: "aqcgdgu8",
+  projectId: "abcgdxyz",// Replace with your project ID
   dataset: "production",
   plugins: [structureTool(), visionTool()],
   schema: { types: schemaTypes },
